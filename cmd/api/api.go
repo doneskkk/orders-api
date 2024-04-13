@@ -26,7 +26,8 @@ func (s *apiServer) Run() error {
 	subrouter := chi.NewRouter()
 	router.Mount("/api/v1", subrouter)
 
-	userHandler := user.NewHandler()
+	userRepo := user.NewRepo(s.db)
+	userHandler := user.NewHandler(userRepo)
 	userHandler.RegisterRoutes(subrouter)
 	log.Println("Listening on", s.addr)
 	return http.ListenAndServe(s.addr, router)
