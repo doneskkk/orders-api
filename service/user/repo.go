@@ -35,9 +35,30 @@ func (r *Repo) GetUserByEmail(email string) (*types.User, error) {
 }
 
 func (r *Repo) GetUserByID(id int) (*types.User, error) {
-	return nil, nil
+	rows, err := r.db.Query("SELECT * FROM users WHERE id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+
+	u := new(types.User)
+	for rows.Next() {
+		u, err = scanRowIntoUser(rows)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if u.ID == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	return u, nil
 }
-func (r *Repo) CreateUser(types.User) error {
+func (r *Repo) CreateUser(user types.User) error {
+	_, err := r.db.Exec("INSERT INTO users (firstName, lastName, email, password) VALUES (?,?,?,?)", user.FirstName, user.LastName, user.Email, user.Password)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 func scanRowIntoUser(rows *sql.Rows) (*types.User, error) {
